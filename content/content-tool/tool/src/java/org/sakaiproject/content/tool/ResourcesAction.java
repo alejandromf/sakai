@@ -6370,6 +6370,28 @@ protected static final String PARAM_PAGESIZE = "collections_per_page";
 					else if ("o".equals(notification))
 					{
 						noti = NotificationService.NOTI_OPTIONAL;
+					}	
+					
+					// SAK-33887: Email notifications over hidden folders with accessible contents
+					try {
+						if(item.isCollection()) {
+						    ResourceProperties props = item.getEntity().getProperties();
+						    boolean hiddenWithAccessibleContent = props.getBooleanProperty(props.PROP_HIDDEN_WITH_ACCESSIBLE_CONTENT);
+						    if (hiddenWithAccessibleContent) 	noti= NotificationService.NOTI_NONE;	
+						} 
+					}catch (Exception e) {
+						
+					}
+					
+					for (ListItem carpeta: item.getCollectionPath())
+					{
+						try {
+						    ResourceProperties props = carpeta.getEntity().getProperties();
+						    boolean hiddenWithAccessibleContent = props.getBooleanProperty(props.PROP_HIDDEN_WITH_ACCESSIBLE_CONTENT);
+						    if (hiddenWithAccessibleContent) noti= NotificationService.NOTI_NONE;
+						    }catch (Exception e) {
+								
+							}
 					}
 				}
 				
@@ -7629,6 +7651,29 @@ protected static final String PARAM_PAGESIZE = "collections_per_page";
 				{
 					noti = NotificationService.NOTI_OPTIONAL;
 				}
+					
+				// SAK-33887: Email notifications over hidden folders with accessible contents
+				try {
+					if(item.isCollection()) {
+					    ResourceProperties props = item.getEntity().getProperties();
+					    boolean hiddenWithAccessibleContent = props.getBooleanProperty(props.PROP_HIDDEN_WITH_ACCESSIBLE_CONTENT);
+					    if (hiddenWithAccessibleContent) 	noti= NotificationService.NOTI_NONE;	
+					} 
+				}catch (Exception e) {
+					
+				}
+				
+				for (ListItem carpeta: item.getCollectionPath())
+				{
+					try {
+					    ResourceProperties props = carpeta.getEntity().getProperties();
+					    boolean hiddenWithAccessibleContent = props.getBooleanProperty(props.PROP_HIDDEN_WITH_ACCESSIBLE_CONTENT);
+					    if (hiddenWithAccessibleContent) noti= NotificationService.NOTI_NONE;
+					    }catch (Exception e) {
+							
+						}
+				}
+				
 			}
 			
 			List<String> alerts = item.checkRequiredProperties();

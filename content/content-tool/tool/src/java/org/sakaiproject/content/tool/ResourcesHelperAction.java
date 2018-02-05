@@ -854,7 +854,7 @@ public class ResourcesHelperAction extends VelocityPortletPaneledAction
 		
 		ListItem item = new ListItem(pipe.getContentEntity());
 		// notification
-		int noti = determineNotificationPriority(params, item.isDropbox);
+		int noti = determineNotificationPriority(params, item);
 
 		pipe.setRevisedMimeType(pipe.getMimeType());
 		if(ResourceType.TYPE_TEXT.equals(resourceType) || ResourceType.MIME_TYPE_TEXT.equals(mimetype))
@@ -1154,7 +1154,7 @@ public class ResourcesHelperAction extends VelocityPortletPaneledAction
 
 			ListItem newFile = new ListItem(pipe.getContentEntity());
 			// notification
-			int noti = determineNotificationPriority(params, newFile.isDropbox);
+			int noti = determineNotificationPriority(params, newFile);
 			newFile.setNotification(noti);
 
 			pipe.setRevisedListItem(newFile);
@@ -1327,7 +1327,7 @@ public class ResourcesHelperAction extends VelocityPortletPaneledAction
 			}
 			
 			// notification
-			int noti = determineNotificationPriority(params, newFile.isDropbox);
+			int noti = determineNotificationPriority(params, newFile);
 			newFile.setNotification(noti);
 			
 			//alerts.addAll(newFile.checkRequiredProperties());
@@ -1396,8 +1396,9 @@ public class ResourcesHelperAction extends VelocityPortletPaneledAction
 	/**
 	 * @param params
 	 */
-	protected int determineNotificationPriority(ParameterParser params, boolean contextIsDropbox) 
+	protected int determineNotificationPriority(ParameterParser params, ListItem item) 
 	{
+		boolean contextIsDropbox = item.isDropbox();
 		int noti = NotificationService.NOTI_NONE;
 		// %%STATE_MODE_RESOURCES%%
 		if (contextIsDropbox)
@@ -1421,6 +1422,27 @@ public class ResourcesHelperAction extends VelocityPortletPaneledAction
 		}
 		else
 		{
+			// SAK-33887: Email notifications over hidden folders with accessible contents
+			try {
+				if(item.isCollection()) {
+				    ResourceProperties props = item.getEntity().getProperties();
+				    boolean hiddenWithAccessibleContent = props.getBooleanProperty(props.PROP_HIDDEN_WITH_ACCESSIBLE_CONTENT);
+				    if (hiddenWithAccessibleContent) 	return NotificationService.NOTI_NONE;	
+				} 
+			}catch (Exception e) {
+				
+			}
+			
+			for (ListItem carpeta: item.getCollectionPath())
+			{
+				try {
+				    ResourceProperties props = carpeta.getEntity().getProperties();
+				    boolean hiddenWithAccessibleContent = props.getBooleanProperty(props.PROP_HIDDEN_WITH_ACCESSIBLE_CONTENT);
+				    if (hiddenWithAccessibleContent) return NotificationService.NOTI_NONE;
+				    }catch (Exception e) {
+						
+					}
+			}
 			// read the notification options
 			String notification = params.getString("notify");
 			if ("r".equals(notification))
@@ -1596,7 +1618,7 @@ public class ResourcesHelperAction extends VelocityPortletPaneledAction
 				newFile.captureProperties(params, ListItem.DOT + i);
 				
 				// notification
-				int noti = determineNotificationPriority(params, newFile.isDropbox);
+				int noti = determineNotificationPriority(params, newFile);
 				newFile.setNotification(noti);
 				// allAlerts.addAll(newFile.checkRequiredProperties());
 				
@@ -2262,7 +2284,7 @@ public class ResourcesHelperAction extends VelocityPortletPaneledAction
 		ResourceToolActionPipe pipe = (ResourceToolActionPipe) toolSession.getAttribute(ResourceToolAction.ACTION_PIPE);
 		ListItem item = new ListItem(pipe.getContentEntity());
 		
-		int notificationPriority = determineNotificationPriority(params, item.isDropbox());
+		int notificationPriority = determineNotificationPriority(params, item);
 		
 		SessionState state = getState(request);
 		
